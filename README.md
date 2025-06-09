@@ -1,5 +1,10 @@
 # Unit Test Doc Validator
 
+[![Tests](https://github.com/yourusername/utdoc-validator/actions/workflows/tests.yml/badge.svg)](https://github.com/yourusername/utdoc-validator/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/yourusername/utdoc-validator/branch/main/graph/badge.svg)](https://codecov.io/gh/yourusername/utdoc-validator)
+[![PyPI version](https://badge.fury.io/py/utdoc-validator.svg)](https://badge.fury.io/py/utdoc-validator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A Python CLI tool that validates the presence and structure of unit test documentation in software projects. It operates locally and integrates with GitHub PRs to check for the presence and completeness of unit test documentation files.
 
 ## Features
@@ -14,13 +19,16 @@ A Python CLI tool that validates the presence and structure of unit test documen
 ## Installation
 
 ```bash
+# Install from PyPI
+pip install utdoc-validator
+
 # Install from source
 git clone https://github.com/yourusername/utdoc-validator.git
 cd utdoc-validator
 pip install -e .
 
-# Or install directly from PyPI (once published)
-# pip install utdoc-validator
+# Install with development dependencies
+pip install -e ".[dev]"
 ```
 
 ## Usage
@@ -96,24 +104,56 @@ Create a `.utdocconfig` file in your project root to customize validation:
 
 ## GitHub Action Integration
 
-See [GitHub Action Usage](docs/github-action-usage.md) for details on using the tool as a GitHub Action.
+Add to your workflow:
+
+```yaml
+name: Validate Unit Test Docs
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Validate Unit Test Documentation
+        uses: yourusername/utdoc-validator@main
+        with:
+          pr_number: ${{ github.event.pull_request.number }}
+          doc_name: unit_tests.md
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+See [GitHub Action Usage](docs/github-action-usage.md) for more details.
 
 ## Development
 
-### Setup Development Environment
-
-```bash
-git clone https://github.com/yourusername/utdoc-validator.git
-cd utdoc-validator
-pip install -e ".[dev]"
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for information on how to contribute to this project.
 
 ### Running Tests
 
 ```bash
+# Run tests
 pytest
+
+# Run tests with coverage
+pytest --cov=utdoc_validator
+```
+
+### Code Formatting and Linting
+
+This project uses pre-commit hooks for code formatting and linting:
+
+```bash
+# Install pre-commit hooks
+pre-commit install
+
+# Run pre-commit hooks manually
+pre-commit run --all-files
 ```
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

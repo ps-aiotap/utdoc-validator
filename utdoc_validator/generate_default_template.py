@@ -1,25 +1,27 @@
+"""Module for generating default unit test documentation templates."""
+
 class GenerateDefaultTemplate:
-    def __init__(self, template_name):
-        self.template_name = template_name
+    """Generates a default unit test documentation template."""
+    
+    def __init__(self, path: str):
+        """Initialize with the path where the template will be saved.
+        
+        Args:
+            path: Path where the template will be saved
+        """
+        self.path = path
+        self._generate()
+    
+    def _generate(self):
+        """Generate the default template and write it to the specified path."""
+        template_content = """## Test Cases
+Describe individual test cases here.
 
-    def GenerateDefaultTemplate(self, path: str):
-        default_template = {
-            "templateName": self.template_name,
-            # "templateDescription": self.template_description,
-            # "templateBody": self.template_body,
-            "content": f"""
-            ## Test Cases
-            Describe individual test cases here.
+## Coverage
+Include your code coverage summary here.
 
-            ## Coverage
-            Include your code coverage summary here.
-
-            ## Edge Cases
-            Mention edge or uncommon scenarios tested.
-
-            """,
-        }
-
-        with open(path, "w") as f:
-            f.write(default_template)
-            f.write("\n")
+## Edge Cases
+Mention edge or uncommon scenarios tested.
+"""
+        with open(self.path, "w") as f:
+            f.write(template_content)

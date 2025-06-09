@@ -1,0 +1,46 @@
+name: Validate Unit Test Docs
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '**.md'
+      - '.utdocconfig'
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Validate Unit Test Documentation
+        uses: ./.github/
+        with:
+          pr_number: ${{ github.event.pull_request.number }}
+          doc_name: unit_tests.md
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          
+      # Optional: Comment on PR with validation results
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const run_id = context.runId;
+            const run_url = `https://github.com/${owner}/${repo}/actions/runs/${run_id}`;
+            
+            const jobStatus = '${{ job.status }}';
+            const icon = jobStatus === 'success' ? '✅' : '❌';
+            const message = jobStatus === 'success' 
+              ? 'Unit test documentation validation passed!'
+              : 'Unit test documentation validation failed. Please check the logs for details.';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: owner,
+              repo: repo,
+              body: `${icon} **Unit Test Documentation Validation**\n\n${message}\n\n[View Logs](${run_url})`
+            });

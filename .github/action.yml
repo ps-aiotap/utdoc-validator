@@ -1,0 +1,33 @@
+name: Unit Test Doc Validator
+description: Validates unit test documentation for required sections and placeholders.
+
+inputs:
+  pr_number:
+    description: Pull Request number
+    required: false
+  path:
+    description: Path to the unit test documentation file
+    required: false
+  doc_name:
+    description: Name of the doc file (defaults to unit_tests.md)
+    required: false
+    default: unit_tests.md
+  config:
+    description: Path to config file (.utdocconfig)
+    required: false
+    default: .utdocconfig
+  github_token:
+    description: GitHub token for API access
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.pr_number && format('--pr={0}', inputs.pr_number) || '' }}
+    - ${{ inputs.path && format('--path={0}', inputs.path) || '' }}
+    - ${{ inputs.doc_name && format('--doc-name={0}', inputs.doc_name) || '' }}
+    - ${{ inputs.config && format('--config={0}', inputs.config) || '' }}
+  env:
+    GITHUB_TOKEN: ${{ inputs.github_token }}

@@ -3,5 +3,19 @@
     "## Test Cases",
     "## Coverage",
     "## Mocks Used"
+  ],
+  "placeholder_patterns": [
+    "\\bWIP\\b",
+    "\\bTBD\\b",
+    "\\bTo be added\\b",
+    "\\bTODO\\b"
+  ],
+  "file_name": "unit_tests.md",
+  "strict_mode": false,
+  "allow_warnings": true,
+  "ignore_files": [
+    "vendor/",
+    "node_modules/",
+    "third_party/"
   ]
 }

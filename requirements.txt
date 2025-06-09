@@ -1,2 +1,3 @@
-requests
-gitpython
+requests>=2.25.0
+pytest>=6.0.0
+pytest-mock>=3.6.0

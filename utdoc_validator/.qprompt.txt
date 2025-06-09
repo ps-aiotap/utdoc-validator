@@ -1,0 +1,51 @@
+Project Overview:
+This is a Python-based CLI tool that validates the presence and structure of unit test documentation in software projects. It operates locally and integrates with GitHub PRs to check for the presence and completeness of `unit_tests.md`.
+
+Phases:
+1. Core CLI handling with argparse (flags like --pr, --path, --doc-name, --generate-template)
+2. GitHub API integration with fallback to `gh` CLI
+3. Markdown parsing and structural validation
+4. Support for config file `.utdocconfig` and generation of templates
+5. GitHub Action wrapper with Docker and action.yml support
+
+AI Tasks:
+1. Generate unit tests using pytest for all phases of the tool.
+   - Include CLI flag handling, file detection, and exit codes
+   - Mock filesystem, GitHub API, and CLI input as needed
+
+2. Review the codebase for hardcoded values and magic strings.
+   - Examples: "unit_tests.md", "## Test Cases", "WIP", "TBD"
+   - Recommend turning these into constants, config values, or CLI arguments
+
+3. Identify areas for improvement:
+   - Consolidate repeated string literals
+   - Suggest modularization of any long functions
+   - Flag any areas with inline token strings or sensitive defaults
+
+4. Review project for Python best practices and make the suggested changes in the codebase:
+   - PEP8, function length, naming conventions, and structure
+   - Improve docstrings and typing
+   - Enhance error handling and user feedback
+
+5. README.md Generation:
+   - Generate a well-structured README based on the current codebase
+   - Include: installation, CLI usage, config/template instructions, GitHub Action integration
+   - Help make the tool beginner-friendly and open-source ready
+
+6. Be mindful of maintainability and testability.
+   - Use dependency injection where applicable
+   - Ensure code can be tested in isolation
+
+Priorities:
+- Maximize test coverage, especially for CLI, config, and markdown parsing
+- Keep UX of the tool clean and user-friendly
+- Maintain clear, refactorable structure across all modules
+
+Assume:
+- Python 3.9+
+- Uses argparse, requests (or GitHub CLI), os, and markdown parsing libs
+- Project will be open source and consumed via CLI
+
+Do not:
+- Introduce external services or SDKs unless already in use
+- Rewrite the architecture unless specifically prompted

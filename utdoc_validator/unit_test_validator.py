@@ -31,7 +31,8 @@ from utdoc_validator.constants import (
     MSG_INVALID_PR_NUMBER,
     MSG_NO_FILES_RETRIEVED,
     MSG_NO_DOC_FILE_FOUND,
-    MSG_FAILED_GET_CONTENT
+    MSG_FAILED_GET_CONTENT,
+    FILE_ENCODINGS,
 )
 from utdoc_validator.pr_file_checker import PRFileChecker
 
@@ -41,10 +42,10 @@ logger = logging.getLogger(__name__)
 
 class UnitTestValidator:
     """Validates unit test documentation files for required sections and placeholders."""
-    
+
     def __init__(self, pr: Optional[str], path: str):
         """Initialize the validator.
-        
+
         Args:
             pr: Pull request number (optional)
             path: Path to the documentation file
@@ -58,7 +59,7 @@ class UnitTestValidator:
 
     def validate(self) -> int:
         """Validate the documentation file.
-        
+
         Returns:
             EXIT_SUCCESS if validation passes, EXIT_FAILURE otherwise
         """
@@ -67,13 +68,28 @@ class UnitTestValidator:
             print(MSG_FILE_NOT_FOUND.format(self.path))
             return EXIT_FAILURE
 
-        try:
-            with open(self.path, "r") as f:
-                content = f.read()
-            logger.info(f"Successfully read file: {self.path}")
-        except IOError as e:
-            logger.error(f"Error reading file: {e}")
-            print(MSG_ERROR_READING_FILE.format(e))
+        content = None
+
+        for encoding in FILE_ENCODINGS:
+            try:
+                with open(self.path, "r", encoding=encoding) as f:
+                    content = f.read()
+                logger.info(
+                    f"Successfully read file with {encoding} encoding: {self.path}"
+                )
+                break
+            except UnicodeDecodeError:
+                continue
+            except IOError as e:
+                logger.error(f"Error reading file: {e}")
+                print(MSG_ERROR_READING_FILE.format(e))
+                return EXIT_FAILURE
+
+        if content is None:
+            logger.error(
+                f"Could not decode file with any supported encoding: {self.path}"
+            )
+            print(f"❌ Could not decode file: {self.path}")
             return EXIT_FAILURE
 
         success = self._validate_required_sections(content)
@@ -83,14 +99,16 @@ class UnitTestValidator:
 
     def _validate_required_sections(self, content: str) -> bool:
         """Check if all required sections are present in the content.
-        
+
         Args:
             content: Documentation file content
-            
+
         Returns:
             True if all required sections are present, False otherwise
         """
         success = True
+
+        print(f"Content:{content}")
         for section in self.required_sections:
             if section not in content:
                 logger.warning(f"Missing section: {section}")
@@ -103,7 +121,7 @@ class UnitTestValidator:
 
     def _check_placeholders(self, content: str) -> None:
         """Check for placeholder text in the content.
-        
+
         Args:
             content: Documentation file content
         """
@@ -115,7 +133,7 @@ class UnitTestValidator:
 
     def validate_from_pr(self) -> int:
         """Validate documentation from a pull request.
-        
+
         Returns:
             EXIT_SUCCESS if validation passes, EXIT_FAILURE otherwise
         """
@@ -123,52 +141,52 @@ class UnitTestValidator:
             logger.error("No PR number provided")
             print(MSG_NO_PR_NUMBER)
             return EXIT_FAILURE
-            
+
         try:
             pr_number = int(self.pr)
         except ValueError:
             logger.error(f"Invalid PR number: {self.pr}")
             print(MSG_INVALID_PR_NUMBER.format(self.pr))
             return EXIT_FAILURE
-            
+
         logger.info(f"Validating PR #{pr_number}")
-        
+
         # Get repo from environment or use default
         repo = os.getenv(ENV_GITHUB_REPO, DEFAULT_REPO)
         token = os.getenv(ENV_GITHUB_TOKEN, "")
-        
+
         # Create PR file checker
         checker = PRFileChecker(pr_number=pr_number, repo=repo, token=token)
-        
+
         # Get files from PR
         files = checker.get_pr_files()
         if not files:
             logger.error(f"Could not retrieve files for PR #{pr_number}")
             print(MSG_NO_FILES_RETRIEVED.format(pr_number))
             return EXIT_FAILURE
-            
+
         # Look for unit test documentation file
         doc_file = None
         for file in files:
             if file.endswith(self.path):
                 doc_file = file
                 break
-                
+
         if not doc_file:
             logger.error(f"No documentation file found in PR #{pr_number}")
             print(MSG_NO_DOC_FILE_FOUND.format(pr_number))
             return EXIT_FAILURE
-            
+
         # Download the file content
         content = self._get_file_content(pr_number, repo, doc_file, token)
         if not content:
             return EXIT_FAILURE
-            
+
         # Create a temporary file with the content
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp:
             temp.write(content)
             temp_path = temp.name
-            
+
         try:
             # Save the original path
             original_path = self.path
@@ -178,21 +196,23 @@ class UnitTestValidator:
             result = self.validate()
             # Restore the original path
             self.path = original_path
-            
+
             return result
         finally:
             # Clean up the temporary file
             os.unlink(temp_path)
-    
-    def _get_file_content(self, pr_number: int, repo: str, file_path: str, token: str) -> Optional[str]:
+
+    def _get_file_content(
+        self, pr_number: int, repo: str, file_path: str, token: str
+    ) -> Optional[str]:
         """Get file content from a PR.
-        
+
         Args:
             pr_number: Pull request number
             repo: Repository name
             file_path: Path to the file
             token: GitHub token
-            
+
         Returns:
             File content or None if retrieval fails
         """
@@ -200,6 +220,7 @@ class UnitTestValidator:
         if token:
             try:
                 import requests
+
                 url = f"{GITHUB_API_REPOS_URL}/{repo}/contents/{file_path}?ref=refs/pull/{pr_number}/head"
                 headers = {
                     "Authorization": f"{GITHUB_API_AUTH_PREFIX}{token}",
@@ -211,17 +232,23 @@ class UnitTestValidator:
                 return response.text
             except Exception as e:
                 logger.warning(f"Failed to get file content via API: {e}")
-        
+
         # Fallback to GitHub CLI
         try:
             import subprocess
+
             result = subprocess.run(
                 [
-                    GH_CLI_COMMAND, GH_CLI_PR_SUBCOMMAND, GH_CLI_VIEW_SUBCOMMAND,
+                    GH_CLI_COMMAND,
+                    GH_CLI_PR_SUBCOMMAND,
+                    GH_CLI_VIEW_SUBCOMMAND,
                     str(pr_number),
-                    GH_CLI_REPO_FLAG, repo,
-                    GH_CLI_JSON_FLAG, "files",
-                    GH_CLI_JQ_FLAG, f".files[] | select(.path == \"{file_path}\") | .contents"
+                    GH_CLI_REPO_FLAG,
+                    repo,
+                    GH_CLI_JSON_FLAG,
+                    "files",
+                    GH_CLI_JQ_FLAG,
+                    f'.files[] | select(.path == "{file_path}") | .contents',
                 ],
                 capture_output=True,
                 text=True,

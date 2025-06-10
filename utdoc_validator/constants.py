@@ -71,3 +71,6 @@ MSG_CLI_FAILED = "[CLI] failed: {}"
 MSG_FILE_STATUS = (
     "{'✅' if found else '❌'} `{target_file}` {'found' if found else 'missing'}"
 )
+
+# File encodings to try when reading files
+FILE_ENCODINGS = ["utf-8", "utf-16", "utf-16-le", "utf-16-be", "latin-1"]

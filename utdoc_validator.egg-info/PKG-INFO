@@ -1,0 +1,203 @@
+Metadata-Version: 2.4
+Name: utdoc-validator
+Version: 0.1.0
+Summary: A tool to validate unit test documentation
+Home-page: https://github.com/yourusername/utdoc-validator
+Author: Your Name
+Author-email: your.email@example.com
+Project-URL: Bug Tracker, https://github.com/yourusername/utdoc-validator/issues
+Project-URL: Documentation, https://github.com/yourusername/utdoc-validator#readme
+Project-URL: Source Code, https://github.com/yourusername/utdoc-validator
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Testing
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: requests>=2.25.0
+Provides-Extra: dev
+Requires-Dist: pytest>=6.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=2.12.0; extra == "dev"
+Requires-Dist: black>=21.5b2; extra == "dev"
+Requires-Dist: flake8>=3.9.2; extra == "dev"
+Requires-Dist: isort>=5.9.1; extra == "dev"
+Requires-Dist: mypy>=0.812; extra == "dev"
+Requires-Dist: pre-commit>=2.13.0; extra == "dev"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: project-url
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# Unit Test Doc Validator
+
+[![Tests](https://github.com/yourusername/utdoc-validator/actions/workflows/tests.yml/badge.svg)](https://github.com/yourusername/utdoc-validator/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/yourusername/utdoc-validator/branch/main/graph/badge.svg)](https://codecov.io/gh/yourusername/utdoc-validator)
+[![PyPI version](https://badge.fury.io/py/utdoc-validator.svg)](https://badge.fury.io/py/utdoc-validator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A Python CLI tool that validates the presence and structure of unit test documentation in software projects. It operates locally and integrates with GitHub PRs to check for the presence and completeness of unit test documentation files.
+
+## Features
+
+- Validates unit test documentation files for required sections
+- Detects placeholder text like "WIP" or "TBD" that indicates incomplete documentation
+- Integrates with GitHub PRs to check for documentation files
+- Supports custom configuration via `.utdocconfig` file
+- Generates template documentation files
+- Available as a GitHub Action
+
+## Installation
+
+```bash
+# Install from PyPI
+pip install utdoc-validator
+
+# Install from source
+git clone https://github.com/yourusername/utdoc-validator.git
+cd utdoc-validator
+pip install -e .
+
+# Install with development dependencies
+pip install -e ".[dev]"
+```
+
+## Usage
+
+### Basic Usage
+
+```bash
+# Validate a specific file
+utdoc-validator --path path/to/unit_tests.md
+
+# Generate a template file
+utdoc-validator --generate-template --path path/to/unit_tests.md
+
+# Validate documentation in a GitHub PR
+utdoc-validator --pr 123
+```
+
+### Command Line Options
+
+- `--path`: Path to the test documentation file
+- `--pr`: GitHub PR number to check
+- `--doc-name`: Custom documentation filename (default: unit_tests.md)
+- `--generate-template`: Generate a default template file
+- `--config`: Path to config file (default: .utdocconfig)
+- `--verbose`, `-v`: Enable verbose logging
+- `--log-file`: Path to log file
+- `--strict`: Enable strict mode (warnings are treated as errors)
+
+### Environment Variables
+
+When using with GitHub PRs:
+
+- `GITHUB_TOKEN`: GitHub API token for authentication
+- `GITHUB_REPO`: Repository in format "username/repo"
+- `PR_NUMBER`: Pull request number
+
+## Configuration
+
+Create a `.utdocconfig` file in your project root to customize validation:
+
+```json
+{
+  "required_sections": [
+    "## Test Cases",
+    "## Coverage",
+    "## Mocks Used"
+  ],
+  "placeholder_patterns": [
+    "\\bWIP\\b",
+    "\\bTBD\\b",
+    "\\bTo be added\\b",
+    "\\bTODO\\b"
+  ],
+  "file_name": "unit_tests.md",
+  "strict_mode": false,
+  "allow_warnings": true,
+  "ignore_files": [
+    "vendor/",
+    "node_modules/",
+    "third_party/"
+  ]
+}
+```
+
+### Configuration Options
+
+- `required_sections`: List of section headers that must be present in the documentation
+- `placeholder_patterns`: List of regex patterns that indicate incomplete documentation
+- `file_name`: Default name of the documentation file
+- `strict_mode`: If true, warnings are treated as errors
+- `allow_warnings`: If false, any warning will cause validation to fail
+- `ignore_files`: List of directories to ignore when checking for documentation files
+
+## GitHub Action Integration
+
+Add to your workflow:
+
+```yaml
+name: Validate Unit Test Docs
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Validate Unit Test Documentation
+        uses: yourusername/utdoc-validator@main
+        with:
+          pr_number: ${{ github.event.pull_request.number }}
+          doc_name: unit_tests.md
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+See [GitHub Action Usage](docs/github-action-usage.md) for more details.
+
+## Development
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for information on how to contribute to this project.
+
+### Running Tests
+
+```bash
+# Run tests
+pytest
+
+# Run tests with coverage
+pytest --cov=utdoc_validator
+```
+
+### Code Formatting and Linting
+
+This project uses pre-commit hooks for code formatting and linting:
+
+```bash
+# Install pre-commit hooks
+pre-commit install
+
+# Run pre-commit hooks manually
+pre-commit run --all-files
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

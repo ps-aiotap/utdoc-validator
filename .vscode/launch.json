@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug utdoc-validator CLI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "utdoc_validator.cli",
+      "console": "integratedTerminal",
+      "args": [
+        "--path",
+        "unit_tests.md"
+      ]
+    }
+  ]
+}

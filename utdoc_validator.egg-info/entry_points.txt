@@ -1,0 +1,2 @@
+[console_scripts]
+utdoc-validator = utdoc_validator.cli:main

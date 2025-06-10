@@ -72,8 +72,8 @@ def check_pr_file():
     sys.exit(EXIT_SUCCESS if result else EXIT_FAILURE)
 
 
-def check_cli_file():
-    """Process command line arguments and run the appropriate validation."""
+def parse_arguments():
+    """Parse and return command line arguments."""
     parser = argparse.ArgumentParser(
         description="Validate unit test documentation for PRs."
     )
@@ -109,24 +109,20 @@ def check_cli_file():
         action="store_true",
         help="Enable strict mode (warnings are treated as errors)",
     )
+    return parser.parse_args()
 
-    args = parser.parse_args()
-
-    # Set up logging
+def setup_validation(args):
+    """Set up logging and load config."""
     log_level = logging.DEBUG if args.verbose else logging.INFO
     setup_logging(level=log_level, log_file=args.log_file)
 
-    # Load config
     config = load_config(args.config)
-
-    # Override config with command line arguments
     if args.strict:
         config["strict_mode"] = True
+    return config
 
-    doc_path = args.path or args.doc_name
-    logger.info(f"Using document path: {doc_path}")
-
-    # Template generation mode
+def generate_template_if_requested(args, doc_path):
+    """Generate template if requested and exit."""
     if args.generate_template:
         logger.info(f"Generating template at {doc_path}")
         GenerateDefaultTemplate(doc_path)
@@ -134,6 +130,8 @@ def check_cli_file():
         print(MSG_TEMPLATE_GENERATED.format(doc_path))
         sys.exit(EXIT_SUCCESS)
 
+def create_validator(args, doc_path, config):
+    """Create and configure validator instance."""
     validator = UnitTestValidator(pr=args.pr, path=doc_path)
     validator.required_sections = config.get(
         "required_sections", DEFAULT_REQUIRED_SECTIONS
@@ -141,19 +139,10 @@ def check_cli_file():
     validator.placeholder_patterns = config.get(
         "placeholder_patterns", validator.placeholder_patterns
     )
+    return validator
 
-    if args.path:
-        logger.info(f"Validating file: {args.path}")
-        result = validator.validate()
-    elif args.pr:
-        logger.info(f"Validating PR #{args.pr}")
-        result = validator.validate_from_pr()
-    else:
-        logger.error("No path or PR number provided")
-        print(MSG_NO_PR_OR_PATH)
-        sys.exit(EXIT_FAILURE)
-
-    # Handle warnings in strict mode
+def handle_validation_result(result, config, validator):
+    """Process validation result and exit appropriately."""
     if (
         result == EXIT_SUCCESS
         and config.get("strict_mode", False)
@@ -172,6 +161,30 @@ def check_cli_file():
         print(MSG_VALIDATION_FAILED)
     sys.exit(result)
 
+def check_cli_file():
+    """Process command line arguments and run the appropriate validation."""
+    args = parse_arguments()
+    config = setup_validation(args)
+    
+    doc_path = args.path or args.doc_name
+    logger.info(f"Using document path: {doc_path}")
+
+    generate_template_if_requested(args, doc_path)
+    
+    validator = create_validator(args, doc_path, config)
+
+    if args.path:
+        logger.info(f"Validating file: {args.path}")
+        result = validator.validate()
+    elif args.pr:
+        logger.info(f"Validating PR #{args.pr}")
+        result = validator.validate_from_pr()
+    else:
+        logger.error("No path or PR number provided")
+        print(MSG_NO_PR_OR_PATH)
+        sys.exit(EXIT_FAILURE)
+
+    handle_validation_result(result, config, validator)
 
 def main():
     """Main entry point for the CLI."""

@@ -71,6 +71,11 @@ class UnitTestValidator:
         content = None
 
         for encoding in FILE_ENCODINGS:
+            # Using exceptions for flow control is generally not ideal from a performance perspective
+            # since the exception handling mechanism has overhead. However, in this case:
+            # 1. It's acceptable because file encoding issues are truly "exceptional" cases
+            # 2. The performance impact is negligible since this happens once per file
+            # 3. This is the idiomatic Python way to handle file operations
             try:
                 with open(self.path, "r", encoding=encoding) as f:
                     content = f.read()

@@ -9,12 +9,15 @@ A Python CLI tool that validates the presence and structure of unit test documen
 
 ## Features
 
-- Validates unit test documentation files for required sections
-- Detects placeholder text like "WIP" or "TBD" that indicates incomplete documentation
-- Integrates with GitHub PRs to check for documentation files
-- Supports custom configuration via `.utdocconfig` file
-- Generates template documentation files
-- Available as a GitHub Action
+- **Documentation Validation**: Validates unit test documentation files for required sections
+- **Placeholder Detection**: Identifies placeholder text like "WIP" or "TBD" that indicates incomplete documentation
+- **GitHub PR Integration**: Integrates with GitHub PRs to check for documentation files
+- **Custom Configuration**: Supports extensive customization via `.utdocconfig` file
+- **Template Generation**: Creates template documentation files with required sections
+- **GitHub Action**: Available as a GitHub Action for CI/CD integration
+- **Multiple Encoding Support**: Handles files with different encodings (UTF-8, UTF-16, etc.)
+- **Strict Mode**: Option to treat warnings as errors for stricter validation
+- **Comprehensive Logging**: Detailed logging with configurable verbosity
 
 ## Installation
 
